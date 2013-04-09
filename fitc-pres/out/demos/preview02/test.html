@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="build/away3dmod.js"></script>
+        <script>
+            away3d.MODULE_ROOT = 'build';
+            away3d.include([
+                'away3d.View3D',
+                'away3d.Geometry',
+                'away3d.Mesh',
+                'away3d.Matrix3D'
+            ], function() {
+                var ctr = document.getElementById('container');
+
+                var view = new away3d.View3D();
+                view.canvas.width = view.width = 960;
+                view.canvas.height = view.height = 540;
+                ctr.appendChild(view.canvas);
+                
+                var r = 50;
+                var geom = new away3d.Geometry();
+                geom.vertices = [ -r,r,r,  r,r,r, r,-r,r, -r,-r,r,
+                                  -r,r,-r, r,r,-r, r,-r,-r, -r,-r,-r ];
+                geom.indices = [ 0, 1, 2, 0, 2, 3, // front
+                                 0, 4, 5, 0, 5, 1, // top
+                                 5, 4, 7, 5, 7, 6, // back
+                                 3, 2, 6, 3, 6, 7, // bottom
+                                 1, 5, 6, 1, 6, 2, // right
+                                 4, 0, 3, 4, 3, 7  // left
+                                 ];
+                geom.colors = [1,0,0, 0,1,0, 0,0,1, 1,0,0,
+                               0,1,0, 0,0,1, 1,0,0, 0,1,0 ];
+
+                var mesh = new away3d.Mesh(geom);
+                mesh.x = -100;
+                view.scene.appendChild(mesh);
+
+                var mesh2 = new away3d.Mesh(geom);
+                mesh2.x = 400;
+                mesh.appendChild(mesh2);
+
+                setInterval(function() {
+                    mesh.rotationY += 0.05;
+                    mesh2.rotationZ -= 0.03;
+                    view.render();
+                }, 40);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="container">
+        </div>
+    </body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="build/away3dmod.js"></script>
+        <script>
+            away3d.MODULE_ROOT = 'build';
+            away3d.include([
+                'away3d.View3D',
+                'away3d.Geometry',
+                'away3d.Mesh',
+                'away3d.VertexColorMethod',
+                'away3d.TextureMethod',
+                'away3d.ImageTexture'
+            ], function() {
+
+                var img = new Image();
+                img.src = 'star.jpg';
+                img.onload = function() {
+                    var ctr = document.getElementById('container');
+
+                    var view = new away3d.View3D();
+                    view.canvas.width = view.width = 960;
+                    view.canvas.height = view.height = 540;
+                    ctr.appendChild(view.canvas);
+                    
+                    var r = 50;
+                    var geom = new away3d.Geometry();
+                    geom.$.vertexData = [ -r,r,r,  r,r,r, r,-r,r, -r,-r,r,
+                                          -r,r,-r, r,r,-r, r,-r,-r, -r,-r,-r ];
+                    geom.$.indexData = [ 0, 1, 2, 0, 2, 3, // front
+                                         0, 4, 5, 0, 5, 1, // top
+                                         5, 4, 7, 5, 7, 6, // back
+                                         3, 2, 6, 3, 6, 7, // bottom
+                                         1, 5, 6, 1, 6, 2, // right
+                                         4, 0, 3, 4, 3, 7  // left
+                                         ];
+                    geom.$.colorData = [1,0,0, 0,1,0, 0,0,1, 1,0.8,0,
+                                        0,1,0, 0,0.3,1, 1,0,0, 0,1,0 ];
+                    geom.$.uvData = [0,1, 1,1, 1,0, 0,0,
+                                     0,1, 1,1, 1,0, 0,0 ];
+
+
+                    var root = new away3d.Object3D();
+                    view.scene.appendChild(root);
+
+                    var mtl = new away3d.DefaultMaterial();
+                    //mtl.addMethod(new away3d.VertexColorMethod());
+                    var texture = new away3d.ImageTexture(img);
+                    mtl.addMethod(new away3d.TextureMethod(texture));
+
+                    var i,j,k,len=5;
+                    for (i=0; i<len; i++) {
+                        for (j=0; j<len; j++) {
+                            for (k=0; k<len; k++) {
+                                var mesh = new away3d.Mesh(geom, mtl);
+                                mesh.x = i*120 - 300;
+                                mesh.y = j*120 - 300;
+                                mesh.z = k*120 - 300;
+                                root.appendChild(mesh);
+                            }
+                        }
+                    }
+
+                    setInterval(function() {
+                        root.rotationY += 0.05;
+                        view.render();
+                    }, 40);
+                };
+            });
+        </script>
+    </head>
+    <body>
+        <div id="container">
+        </div>
+    </body>
+</html>

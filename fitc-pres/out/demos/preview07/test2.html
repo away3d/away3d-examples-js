@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="build/away3dmod.js"></script>
+        <script>
+            var init = function()
+            {
+                away3d.MODULE_ROOT = 'build';
+                away3d.include([
+                    'away3d.View3D',
+                    'away3d.FileLoader',
+                    'away3d.AWD2Parser',
+                    'away3d.ImageTexture',
+                    'away3d.TextureMethod',
+					'away3d.PointLight',
+                    'away3d.Mesh'
+                ], function() {
+                    var ctr = document.getElementById('container');
+
+                    var view = new away3d.View3D();
+                    view.canvas.width = view.width = 960;
+                    view.canvas.height = view.height = 540;
+                    ctr.appendChild(view.canvas);
+
+                    away3d.FileLoader.enableParser(away3d.AWD2Parser);
+
+                    var root = new away3d.Object3D();
+                    view.scene.appendChild(root);
+
+                    var mesh = null;
+
+					var light = new away3d.PointLight();
+					light.x = -100;
+					light.y = 100;
+					root.appendChild(light);
+
+                    var img = new Image();
+                    img.src = 'suzanne.png';
+                    img.onload = function() {
+                        var texture = new away3d.ImageTexture(img);
+                        var loader = new away3d.FileLoader();
+                        loader.addEventListener('asset', function(evt) {
+                            var geom = evt.asset;
+
+                            mesh = new away3d.Mesh(geom);
+                            mesh.scaleX = mesh.scaleY = mesh.scaleZ = 200;
+                            mesh.material.addMethod(new away3d.TextureMethod(texture));
+							mesh.material.lights = [light];
+                            root.appendChild(mesh);
+                        });
+
+                        var listener = {
+                            handleEvent: function(evt) {
+                                console.log('handling event!', evt);
+                            }
+                        };
+
+                        loader.addEventListener('asset', listener);
+
+                        loader.load('suzanne.awd');
+                    }
+
+                    var tRotX = 0;
+                    var tRotY = 0;
+
+                    setInterval(function() {
+                        tRotY += 0.005;
+                        root.rotationY += (tRotY - root.rotationY) * 0.1;
+                        root.rotationX += (tRotX - root.rotationX) * 0.1;
+
+
+                        view.render();
+                    }, 1000/60);
+
+                    view.canvas.onmousedown = function(ev) {
+                        var prevX = ev.offsetX || ev.layerX || 0,
+                            prevY = ev.offsetY || ev.layerY || 0;
+
+                        view.canvas.onmousemove = function(ev) {
+                            var curX = (ev.offsetX || ev.layerX || 0),
+                                curY = (ev.offsetY || ev.layerY || 0),
+								dx = curX - prevX,
+								dy = curY - prevY;
+
+                            tRotY -= dx * 0.01;
+                            tRotX -= dy * 0.01;
+
+                            prevX = curX;
+                            prevY = curY;
+                        };
+
+                        view.canvas.onmouseup = function(ev) {
+                            view.canvas.onmousemove = null;
+                            view.canvas.onmouseup = null;
+                        };
+                    };
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container">
+        </div>
+        Drag to rotate.
+        <script>init();</script>
+    </body>
+</html>

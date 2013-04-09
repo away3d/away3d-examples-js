@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="demo.js"></script>
+        <script src="away3d/away3dmod.js"></script>
+        <style>
+            * { margin: 0; padding: 0; }
+            #slide-link {
+                position: fixed;
+                color: white;
+                font-family: sans-serif;
+                text-decoration: none;
+                font-size: 9px;
+            }
+        </style>
+        <script>
+            away3d.MODULE_ROOT = 'away3d';
+            away3d.include([
+                'away3d.View3D',
+                'away3d.AWD2Parser',
+                'away3d.FileLoader',
+                'away3d.DefaultMaterial',
+                'away3d.ImageTexture',
+                'away3d.PointLight',
+                'away3d.BasicDiffuseMethod'
+            ], function()
+            {
+                var view, loader, ctr, light, diffuse, cc, slides;
+
+                view = new away3d.View3D();
+                view.canvas.width = view.width = 1024;
+                view.canvas.height = view.height = 768;
+                document.body.appendChild(view.canvas);
+
+                cc = new CameraController(view.camera);
+
+                var updateSlides = function() {
+                    var a = document.getElementById('slide-link');
+                    if (slides && slides.curSlideIdx >= 0 && slides.slides[slides.curSlideIdx].href) {
+                        a.href = slides.slides[slides.curSlideIdx].href;
+                        a.style.display = 'block';
+                    }
+                    else {
+                        a.href = 'javascript:';
+                        a.style.display = 'none';
+                    }
+                };
+
+                var resetCameraPos = function()
+                {
+                    view.camera.rotationX = 0;
+                    view.camera.rotationY = 0;
+                    view.camera.x = slides.mesh.x * ctr.scaleX;
+                    view.camera.y = slides.mesh.y * ctr.scaleY;
+                    view.camera.z = slides.mesh.z * ctr.scaleZ - 56.5;
+                };
+
+                updateSlides();
+
+                window.addEventListener('keyup', function(evt) {
+                    if (!slides)
+                        return;
+
+                    switch (evt.keyCode) {
+                        case 39:
+                            slides.next();
+                            updateSlides();
+                            break;
+                        case 35:
+                            slides.next(10);
+                            updateSlides();
+                            break;
+                        case 36:
+                            slides.prev(10);
+                            updateSlides();
+                            break;
+                        case 37:
+                            slides.prev();
+                            updateSlides();
+                            break;
+                        case 73:
+                            ctr.appendChild(slides.mesh);
+                            break;
+                        case 79:
+                            slides.mesh.parent.removeChild(slides.mesh);
+                            break;
+                        case 82:
+                            resetCameraPos();
+                            break;
+                    }
+                });
+
+                light = new away3d.PointLight();
+                light.x = 100;
+                light.y = 300
+                light.z = 70;
+                view.scene.appendChild(light);
+
+                away3d.FileLoader.enableParser(away3d.AWD2Parser);
+
+                var wt = new Image();
+                wt.src = 'water_normals.jpg';
+                wt.onload = function() {
+                    var tex = new away3d.ImageTexture(wt),
+                        mtl = new away3d.DefaultMaterial();
+
+                    mtl.lights = [ light ];
+                    mtl.addMethod(new WaterMethod(tex));
+
+                    ctr = new away3d.Object3D();
+                    ctr.scaleX = ctr.scaleY = ctr.scaleZ = 10;
+                    view.scene.appendChild(ctr);
+
+                    slides = new SlideShow();
+                    slides.mesh.x = 10.15;
+                    slides.mesh.y = 7.2;
+                    slides.mesh.z = 48;
+                    //slides.mesh.scaleX = slides.mesh.scaleY = 0.5;
+                    console.log(slides);
+                    ctr.appendChild(slides.mesh);
+
+                    resetCameraPos();
+
+                    diffuse = new away3d.BasicDiffuseMethod();
+
+                    var tris = 0;
+
+                    loader = new away3d.FileLoader();
+                    loader.addEventListener('asset', function(evt) {
+                        if (evt.asset.constructor == away3d.Mesh) {
+                            if (evt.asset.name.indexOf('water') >= 0) {
+                                evt.asset.material = mtl;
+                            }
+
+                            tris += evt.asset.geometry.$.indexData.length / 3;
+
+                            //console.log(evt.asset.name);
+
+                            if (!evt.asset.parent) {
+                                ctr.appendChild(evt.asset);
+                            }
+                        }
+                        else if (evt.asset.constructor == away3d.DefaultMaterial) {
+                            evt.asset.lights = [ light ];
+                            evt.asset.addMethod(diffuse);
+                        }
+                    });
+
+                    loader.load('level.awd');
+
+                    var render = function()
+                    {
+                        cc.update();
+                        view.render();
+                        requestAnimationFrame(render);
+                    };
+
+                    render();
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <a id="slide-link" href="" target="_blank">[o]</a>
+    </body>
+</html>

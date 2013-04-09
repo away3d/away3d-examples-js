@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="build/away3dmod.js"></script>
+        <script>
+            var init = function()
+            {
+                away3d.MODULE_ROOT = 'build';
+                away3d.include([
+                    'away3d.View3D',
+                    'away3d.Object3D',
+                    'away3d.FileLoader',
+                    'away3d.PointLight',
+                    'away3d.AWD2Parser',
+                    'away3d.BasicDiffuseMethod',
+                    'away3d.BasicSpecularMethod'
+                ], function() {
+                    var ctr = document.getElementById('container');
+
+
+                    // Set-up and loading ---------------------------------
+                    var view = new away3d.View3D();
+                    view.canvas.width = view.width = 960;
+                    view.canvas.height = view.height = 540;
+                    ctr.appendChild(view.canvas);
+
+                    away3d.FileLoader.enableParser(away3d.AWD2Parser);
+
+                    var root = new away3d.Object3D();
+                    view.scene.appendChild(root);
+
+                    var light = new away3d.PointLight();
+                    light.y = 200;
+                    light.z = -200;
+                    view.scene.appendChild(light);
+
+                    var loader = new away3d.FileLoader();
+                    loader.addEventListener('asset', function(evt) {
+                        console.log(evt);
+                        if (evt.asset.constructor == away3d.Mesh) {
+                            root.scaleX = root.scaleY = root.scaleZ = 200;
+                            root.appendChild(evt.asset);
+
+                            evt.asset.material.lights = [ light ];
+                            evt.asset.material.addMethod(new away3d.BasicDiffuseMethod());
+                            evt.asset.material.addMethod(new away3d.BasicSpecularMethod());
+                        }
+                    });
+
+                    loader.load('suzanne.awd');
+                    
+
+                    // Mouse interaction and rendering --------------------
+                    var tRotX = 0, tRotY = 0;
+
+                    setInterval(function() {
+                        tRotY += 0.005;
+                        root.rotationY += (tRotY - root.rotationY) * 0.1;
+                        root.rotationX += (tRotX - root.rotationX) * 0.1;
+
+                        view.render();
+                    }, 1000/60);
+
+                    view.canvas.onmousedown = function(ev) {
+                        var prevX = ev.offsetX || ev.layerX || 0,
+                            prevY = ev.offsetY || ev.layerY || 0;
+
+                        view.canvas.onmousemove = function(ev) {
+                            var curX = (ev.offsetX || ev.layerX || 0),
+                                curY = (ev.offsetY || ev.layerY || 0),
+                                dx = curX - prevX,
+                                dy = curY - prevY;
+
+                            tRotY -= dx * 0.01;
+                            tRotX -= dy * 0.01;
+
+                            prevX = curX;
+                            prevY = curY;
+                        };
+
+                        view.canvas.onmouseup = function(ev) {
+                            view.canvas.onmousemove = null;
+                            view.canvas.onmouseup = null;
+                        };
+                    };
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container">
+        </div>
+        Drag to rotate.
+        <script>init();</script>
+    </body>
+</html>

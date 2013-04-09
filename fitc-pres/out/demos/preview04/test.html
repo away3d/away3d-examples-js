@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="build/away3dmod.js"></script>
+        <script>
+            away3d.MODULE_ROOT = 'build';
+            away3d.include([
+                'away3d.View3D',
+                'away3d.FileLoader',
+                'away3d.AWD2Parser',
+                'away3d.Mesh'
+            ], function() {
+                var ctr = document.getElementById('container');
+
+                var view = new away3d.View3D();
+                view.canvas.width = view.width = 960;
+                view.canvas.height = view.height = 540;
+                ctr.appendChild(view.canvas);
+
+                away3d.FileLoader.enableParser(away3d.AWD2Parser);
+
+                var mesh = null;
+
+                var loader = new away3d.FileLoader();
+                loader.addEventListener('asset', function(evt) {
+                    var geom = evt.asset;
+
+                    mesh = new away3d.Mesh(geom);
+
+                    // Temporarily force include color buffer
+                    geom.$.colorData = [];
+                    var i;
+                    for (i=0; i<geom.$.vertexData.length; i++) {
+                        geom.$.colorData[i] = 0.0;
+                    }
+                    view.scene.appendChild(mesh);
+                });
+                loader.load('test.awd');
+
+                setInterval(function() {
+                    if (mesh) 
+                        mesh.rotationY += 0.05;
+
+                    view.render();
+                }, 1000/60);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="container">
+        </div>
+    </body>
+</html>

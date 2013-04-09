@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="build/away3dmod.js"></script>
+        <script>
+            away3d.MODULE_ROOT = 'build';
+            away3d.include([
+                'away3d.View3D',
+                'away3d.Geometry',
+                'away3d.Mesh',
+                'away3d.VertexColorMethod',
+                'away3d.BasicDiffuseMethod',
+                'away3d.TextureMethod',
+                'away3d.ImageTexture',
+                'away3d.PointLight'
+            ], function() {
+
+                var img = new Image();
+                img.src = 'star.jpg';
+                img.onload = function() {
+                    var ctr = document.getElementById('container');
+
+                    var view = new away3d.View3D();
+                    view.canvas.width = view.width = 960;
+                    view.canvas.height = view.height = 540;
+                    ctr.appendChild(view.canvas);
+                    
+                    var r = 50;
+                    var geom = new away3d.Geometry();
+                    /*
+                    geom.$.vertexData = [ 
+                        -r,r,r,  r,r,r,  r,-r,r,  -r,-r,r,   // front
+                        -r,r,-r, r,r,-r, r,-r,-r, -r,-r,-r,  // back
+                        -r,r,-r, -r,r,r, -r,-r,r, -r,-r,-r,  // left
+                        r,r,-r,  r,r,r,  r,-r,r,  r,-r,-r,   // right
+                        -r,r,r,  r,r,r,  r,r,-r,  -r,r,-r,   // top
+                        -r,-r,r, r,-r,r, r,-r,-r, -r,-r,-r,  // bottom
+                    ];
+
+                    geom.$.indexData = [
+                        0, 1, 2, 0, 2, 3,
+                        4, 6, 5, 4, 7, 6,
+                        8, 9, 10, 8, 10, 11,
+                        12, 14, 13, 12, 15, 14,
+                        16, 18, 17, 16, 19, 18,
+                        20, 21, 22, 20, 22, 23
+                    ];
+                                         
+                    geom.$.uvData = [0,1, 1,1, 1,0, 0,0,
+                                     0,1, 1,1, 1,0, 0,0,
+                                     0,1, 1,1, 1,0, 0,0,
+                                     0,1, 1,1, 1,0, 0,0,
+                                     0,1, 1,1, 1,0, 0,0,
+                                     0,1, 1,1, 1,0, 0,0 ];
+                    geom.$.normalData = [
+                        0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
+                        0,0,1,  0,0,1,  0,0,1,  0,0,1,
+                        -1,0,0, -1,0,0, -1,0,0, -1,0,0,
+                        1,0,0,  1,0,0,  1,0,0,  1,0,0,
+                        0,1,0,  0,1,0,  0,1,0,  0,1,0,
+                        0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0,
+                    ];
+                    */
+
+                    r = 200;
+                    geom.$.vertexData = [ -r,0,r, -r,0,-r, r,0,-r, r,0,r ];
+                    geom.$.indexData = [ 0, 1, 2, 0, 2, 3 ];
+                    geom.$.normalData = [ 0,1,0, 0,1,0, 0,1,0, 0,1,0 ];
+
+                    var mesh = new away3d.Mesh(geom);
+                    view.scene.appendChild(mesh);
+
+                    var light = new away3d.PointLight();
+                    light.y = 200;
+                    light.z = 0;
+                    view.scene.appendChild(light);
+
+                    //mesh.material.addMethod(new away3d.VertexColorMethod());
+                    var texture = new away3d.ImageTexture(img);
+                    //mesh.material.addMethod(new away3d.TextureMethod(texture));
+                    mesh.y = -300;
+                    mesh.material.addMethod(new away3d.BasicDiffuseMethod());
+                    mesh.material.lights = [ light ];
+
+                    var mesh2 = new away3d.Mesh(geom, mesh.material);
+                    mesh2.x = 400;
+                    //mesh.appendChild(mesh2);
+
+                    view.camera.x = 100;
+
+                    var t = 0;
+                    setInterval(function() {
+                        mesh.rotationZ = Math.sin(t += 0.05) * Math.PI/2;
+                        //mesh.rotationY += 0.05;
+                        mesh2.rotationZ -= 0.03;
+                        //light.x = Math.sin(t += 0.01) * 200;
+                        view.render();
+                    }, 40);
+                };
+            });
+        </script>
+    </head>
+    <body>
+        <div id="container">
+        </div>
+    </body>
+</html>
